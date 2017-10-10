@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	
+	<body>
+		
+		<h1>Donut JS plugin</h1>
+		
+		<div class="cont">
+			<div id="col1" class="col"></div><!--
+			--><div id="col2" class="col"></div><!--
+			--><div id="col3" class="col"></div><!--
+			--><div id="col4" class="col"></div>
+		</div>
+		
+		<script>
+		// thanks to Harry Stevens and SO Community Wiki
+		// https://stackoverflow.com/a/40356854/5638869
+		function getPath(cx,cy,r){
+		    return "M" + cx + "," + cy + "m" + (-r) + ",0a" + r + "," + r + " 0 1,0 " + (r * 2) + ",0a" + r + "," + r + " 0 1,0 " + (-r * 2) + ",0";
+		}
+		
+		// thanks to Tikhon Jelvis
+		// https://stackoverflow.com/a/8889149/5638869
+		function setVendorStyle(element, property, value) {
+			element.style["webkit" + property] = value;
+			element.style["moz" + property] = value;
+			element.style["ms" + property] = value;
+			element.style["o" + property] = value;
+		}
+		
+		// thanks to Niet the Dark Absol
+		// https://stackoverflow.com/a/11213374/5638869
+		function animateJs(from,to,time,callback) {
+		    var start = new Date().getTime();
+		    var timer = setInterval(function(){
+		        var step = Math.min(1,(new Date().getTime()-start)/time);
+		        
+		        var output = {};
+		        for(var p in from){
+		        	output[p] = (from[p]+step*(to[p]-from[p]));
+		        }
+		        callback( output );
+		        
+		        if( step == 1) clearInterval(timer);
+		    }, 25);
+		}
+		
+		// thanks to neodev2 :p
+		function appendStyleToBody(){
+			var style = 
+			`.donutjs_cont {
+				position: relative;
+			}
+			.donutjs_cont .donutjs_text {
+			    position: absolute;
+			    left: 50%;
+			    top: 50%;
+			    -webkit-transform: translateX(-50%) translateY(-50%);
+			    -moz-transform: translateX(-50%) translateY(-50%);
+			    -ms-transform: translateX(-50%) translateY(-50%);
+			    -o-transform: translateX(-50%) translateY(-50%);
+			    transform: translateX(-50%) translateY(-50%);
+			}
+			.donutjs_cont svg {
+			    display: block;
+			}`;
+			document.body.innerHTML += '<style>'+style+'</style>'
+		}
+		appendStyleToBody();
+		function donutJs(opt, target){
+		    
+		    var cont_elem = document.createElement('div');
+		    cont_elem.className = 'donutjs_cont';
+		    document.querySelector(target).appendChild(cont_elem);
+		    
+		    var size = 100;
+			
+		    var ns = 'http://www.w3.org/2000/svg';
+		    var svg_elem = document.createElementNS(ns, 'svg');
+		    svg_elem.setAttribute('viewBox', '0 0 '+size*2+' '+size*2);
+		    cont_elem.appendChild(svg_elem);
+		    
+		    var path0_elem = document.createElementNS(ns, 'path');
+		    path0_elem.setAttribute('d', getPath(size, size, size-(opt.strokeWidth*0.54)));
+		    svg_elem.appendChild(path0_elem);
+		    
+		    var path1_elem = document.createElementNS(ns, 'path');
+		    path1_elem.setAttribute('d', getPath(size, size, size-(opt.strokeWidth*0.54)));
+		    svg_elem.appendChild(path1_elem);
+			
+		    var len = path1_elem.getTotalLength();
+		    var perc = ((100-opt.percentage) / 100) * len;
+			
+			setVendorStyle(svg_elem, 'Transform', 'rotate(-90deg)');
+		    path1_elem.setAttribute('transform', 'translate('+size*2+'), scale(-1,1)');
+		    path0_elem.style.fill = opt.backgroundColor;
+		    path1_elem.style.fill = 'rgba(0,0,0,0)';
+		    path0_elem.style.stroke = opt.lineBackColor;
+		    path1_elem.style.stroke = opt.lineFrontColor;
+		    path0_elem.style.strokeWidth = opt.strokeWidth+'px';
+		    path1_elem.style.strokeWidth = opt.strokeWidth+'px';
+		    path1_elem.style.strokeDasharray = '0 '+len;
+		    
+		    var text_elem = document.createElement('div');
+		    text_elem.className = 'donutjs_text';
+		    cont_elem.appendChild(text_elem);
+		    
+		    animateJs({a:0, b:len, c:0}, {a:len - perc, b:perc, c:opt.text}, opt.animTime, function(val){
+				path1_elem.style.strokeDasharray = val.a+' '+val.b;
+			    text_elem.innerHTML = parseInt(val.c);
+			});
+		    
+		}
+		
+		
+		/* usage */
+		
+		var globalOptions = {
+			animTime: 2000,
+			strokeWidth: 16,
+			backgroundColor: 'rgba(0,0,0,0)',
+		    lineBackColor: '#f3f3f3',
+		    lineFrontColor: '#75c36c'
+		};
+		
+		donutJs({
+			animTime: globalOptions.animTime,
+		    strokeWidth: globalOptions.strokeWidth,
+		    backgroundColor: globalOptions.backgroundColor,
+		    lineBackColor: globalOptions.lineBackColor,
+		    lineFrontColor: globalOptions.lineFrontColor,
+		    percentage: 12,
+		    text: 58
+		}, '#col1');
+		
+		donutJs({
+			animTime: globalOptions.animTime,
+		    strokeWidth: globalOptions.strokeWidth,
+		    backgroundColor: globalOptions.backgroundColor,
+		    lineBackColor: globalOptions.lineBackColor,
+		    lineFrontColor: globalOptions.lineFrontColor,
+		    percentage: 71,
+		    text: 1234
+		}, '#col2');
+		
+		donutJs({
+			animTime: globalOptions.animTime,
+		    strokeWidth: globalOptions.strokeWidth,
+		    backgroundColor: globalOptions.backgroundColor,
+		    lineBackColor: globalOptions.lineBackColor,
+		    lineFrontColor: globalOptions.lineFrontColor,
+		    percentage: 23,
+		    text: 200
+		}, '#col3');
+		
+		donutJs({
+			animTime: globalOptions.animTime,
+		    strokeWidth: globalOptions.strokeWidth,
+		    backgroundColor: globalOptions.backgroundColor,
+		    lineBackColor: globalOptions.lineBackColor,
+		    lineFrontColor: globalOptions.lineFrontColor,
+		    percentage: 97,
+		    text: 876
+		}, '#col4');
+		</script>
+		
+	</body>
+</html>
